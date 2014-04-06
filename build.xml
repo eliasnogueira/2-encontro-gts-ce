@@ -1,0 +1,95 @@
+<project name="Execucao de testes" default="teste_unitario" basedir=".">
+	
+	<property name="src" value="src" />
+	<property name="test" value="test" />
+	<property name="lib" value="lib" />
+	<property name="bin" value="bin" />
+	<property name="test.reports.unitario" value="target/junit" />
+	<property name="test.reports.bdd" value="target/bdd" />
+	<property name="test.reports.aceitacao" value="target/aceitacao" />
+	
+	<path id="test.classpath">
+		<pathelement location="${bin}" />
+		<pathelement location="lib/junit/junit-4.11.jar" />
+		<fileset dir="${lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	
+	
+	<target name="compile-test">
+		<javac srcdir="${src}" destdir="${bin}" verbose="true" 
+			includeantruntime="true">
+			<classpath refid="test.classpath" />
+		</javac>
+	</target>
+	
+	
+	<target name="teste_unitario" depends="compile-test">
+		<delete dir="${test.reports.unitario}" />
+		<mkdir dir="${test.reports.unitario}" />
+		<junit fork="yes" printsummary="yes" haltonfailure="yes" showoutput="yes">
+			<test name="br.com.qualister.eleitor.test.unitario.TestePreCadastro" haltonfailure="yes" outfile="result">
+               <formatter type="xml"/>
+            </test>
+			<classpath refid="test.classpath" />
+		</junit>
+		<junitreport todir="${test.reports.unitario}">
+			<fileset dir="${test.reports.unitario}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report todir="${test.reports.unitario}" />
+		</junitreport>
+	</target>
+	
+	<target name="teste_bdd" depends="compile-test">
+        <mkdir dir="target/bdd"/>
+        <java classname="cucumber.api.cli.Main" fork="true" failonerror="true" resultproperty="cucumber.exitstatus">
+            <classpath refid="test.classpath"/>
+            <arg value="--format"/>
+            <arg value="junit:target/bdd/allcukes.xml"/>
+            <arg value="--format"/>
+            <arg value="pretty"/>
+            <arg value="--format"/>
+            <arg value="html:target/bdd"/>
+            <arg value="--glue"/>
+            <arg value="br.com.qualister.eleitor.test.bdd"/>
+            <arg value="criterios"/>
+        </java>
+
+        <junitreport todir="${test.reports.bdd}">
+            <fileset dir="${test.reports.bdd}">
+                <include name="allcukes.xml"/>
+            </fileset>
+            <report format="frames" todir="${test.reports.bdd}"/>
+        </junitreport>
+
+        <fail message="Cucumber falhou">
+            <condition>
+                <not>
+                    <equals arg1="${cucumber.exitstatus}" arg2="0"/>
+                </not>
+            </condition>
+        </fail>
+    </target>
+	
+	<target name="teste_aceitacao" depends="compile-test">
+		<delete dir="${test.reports.aceitacao}" />
+		<mkdir dir="${test.reports.aceitacao}" />
+		<junit fork="yes" printsummary="yes" haltonfailure="yes" showoutput="yes">
+			<test name="br.com.qualister.eleitor.test.aceitacao.TestaPreCadastroSimples" haltonfailure="yes" outfile="result">
+               <formatter type="xml"/>
+            </test>
+			<classpath refid="test.classpath" />
+		</junit>
+		<junitreport todir="${test.reports.aceitacao}">
+			<fileset dir="${test.reports.aceitacao}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report todir="${test.reports.aceitacao}" />
+		</junitreport>
+	</target>	
+	
+	
+	
+</project>
